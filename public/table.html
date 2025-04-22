@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>22 Hub - Рулетка</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/table.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/css/table-script.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Левая колонка - история выпадений -->
+        <div class="left-column">
+            <div class="divider"></div>
+            <div class="history-list" id="history-list">
+                <!-- История будет заполнена динамически -->
+            </div>
+        </div>
+        
+        <!-- Правая колонка - статистика -->
+        <div class="right-column">
+            <div class="logo">
+                <img src="/media/logo.png" alt="22 Hub">
+            </div>
+            
+            <!-- Лимиты ставок -->
+            <div class="bet-limits">
+                <div class="limit-row">
+                    <div class="limit-type">MIN</div>
+                    <div class="limit-value">100</div>
+                    <img src="/media/currency.png" alt="Currency">
+                    <div class="limit-equal">= 1$</div>
+                </div>
+                <div class="limit-divider"></div>
+                <div class="limit-row">
+                    <div class="limit-type">MAX</div>
+                    <div class="limit-value">1000</div>
+                    <img src="/media/currency.png" alt="Currency">
+                    <div class="limit-equal">= 100$</div>
+                </div>
+            </div>
+            
+            <!-- Статистика LOW / ZERO / HIGH -->
+            <div class="stats-section">
+                <div class="stats-title">
+                    <span>LOW</span>
+                    <span>HIGH</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-section low-section" id="low-section" style="width: 0%"></div>
+                    <div class="bar-section green-section" id="zero-section-1" style="width: 0%"></div>
+                    <div class="bar-section high-section" id="high-section" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Статистика ODD / ZERO / EVEN -->
+            <div class="stats-section">
+                <div class="stats-title">
+                    <span>ODD</span>
+                    <span>EVEN</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-section odd-section" id="odd-section" style="width: 0%"></div>
+                    <div class="bar-section green-section" id="zero-section-2" style="width: 0%"></div>
+                    <div class="bar-section even-section" id="even-section" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Горячие числа -->
+            <div class="hot-numbers-section">
+                <div class="hot-numbers-container">
+                    <div id="hot-numbers-grid" class="hot-numbers-grid">
+                        <!-- Заполняется динамически -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Холодные числа -->
+            <div class="cold-numbers-section">
+                <div class="cold-numbers-container">
+                    <div id="cold-numbers-grid" class="cold-numbers-grid">
+                        <!-- Заполняется динамически -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Статистика BLACK / GREEN / RED -->
+            <div class="stats-section">
+                <div class="stats-title">
+                    <span>BLACK</span>
+                    <span>RED</span>
+                </div>
+                <div class="bar-container large">
+                    <div class="bar-section black-section" id="black-section" style="width: 0%"></div>
+                    <div class="bar-section green-section" id="zero-section-3" style="width: 0%"></div>
+                    <div class="bar-section red-section" id="red-section" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <!-- Второй ODD / ZERO / EVEN -->
+            <div class="stats-section">
+                <div class="stats-title">
+                    <span>ODD</span>
+                    <span>EVEN</span>
+                </div>
+                <div class="bar-container large">
+                    <div class="bar-section odd-section" id="odd-section-2" style="width: 0%"></div>
+                    <div class="bar-section green-section" id="zero-section-4" style="width: 0%"></div>
+                    <div class="bar-section even-section" id="even-section-2" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html> 

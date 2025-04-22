@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>22 Hub - Выбор стола</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #0e0e16;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            margin-top: 50px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 48px;
+            color: #5edeff;
+            text-shadow: 0 0 10px #5edeff, 0 0 20px #5edeff;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            font-size: 24px;
+            color: #cccccc;
+            margin-top: 10px;
+        }
+        .table-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            max-width: 900px;
+            padding: 20px;
+        }
+        .table-card {
+            background-color: #1e1e2a;
+            border-radius: 10px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid #333344;
+        }
+        .table-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(94, 222, 255, 0.3);
+            border-color: #5edeff;
+        }
+        .table-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+        .table-status {
+            font-size: 14px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            background-color: #4CAF50;
+        }
+        .admin-button {
+            margin-top: 40px;
+            padding: 12px 25px;
+            background-color: #5edeff;
+            color: #0e0e16;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .admin-button:hover {
+            background-color: #3ab5d6;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">22 Hub</div>
+        <div class="subtitle">Выберите стол для просмотра</div>
+    </div>
+
+    <div class="table-grid" id="table-grid">
+        <!-- Сюда будут добавлены карточки столов динамически -->
+    </div>
+
+    <button class="admin-button" id="admin-button">Администрирование</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Получение списка столов с сервера
+            try {
+                const response = await fetch('/api/tables');
+                const tables = await response.json();
+                
+                const tableGrid = document.getElementById('table-grid');
+                
+                // Если список пуст - создадим 5 столов по умолчанию
+                if (tables.length === 0) {
+                    for (let i = 1; i <= 9; i++) {
+                        const tableCard = createTableCard({ tableId: i.toString() });
+                        tableGrid.appendChild(tableCard);
+                    }
+                } else {
+                    // Иначе отобразим существующие столы
+                    tables.forEach(table => {
+                        const tableCard = createTableCard(table);
+                        tableGrid.appendChild(tableCard);
+                    });
+                }
+            } catch (error) {
+                console.error('Ошибка при получении данных столов:', error);
+                
+                // Если ошибка, все равно отобразим 5 столов по умолчанию
+                const tableGrid = document.getElementById('table-grid');
+                for (let i = 1; i <= 9; i++) {
+                    const tableCard = createTableCard({ tableId: i.toString() });
+                    tableGrid.appendChild(tableCard);
+                }
+            }
+            
+            // Кнопка администрирования
+            document.getElementById('admin-button').addEventListener('click', () => {
+                window.location.href = '/admin';
+            });
+        });
+        
+        // Создание карточки стола
+        function createTableCard(table) {
+            const tableCard = document.createElement('div');
+            tableCard.className = 'table-card';
+            tableCard.innerHTML = `
+                <div class="table-number">Стол ${table.tableId}</div>
+                <div class="table-status">Активен</div>
+            `;
+            
+            tableCard.addEventListener('click', () => {
+                window.location.href = `/table/${table.tableId}`;
+            });
+            
+            return tableCard;
+        }
+    </script>
+</body>
+</html> 
