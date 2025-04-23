@@ -290,7 +290,7 @@ body {
 
 .limit-equal {
     text-align: right;
-    min-width: auto; /* Убираем */
+    min-width: 120px; /* Убираем */
     font-family: 'Quantico', sans-serif;
     font-size: var(--limit-equal-font-size);
     color: white;
