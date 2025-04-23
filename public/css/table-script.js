@@ -2,6 +2,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Получаем ID стола из URL
     const tableId = window.location.pathname.split('/').pop();
     
+    // Базовый путь уже определен в HTML как window.basePath
+    const basePath = window.basePath || '';
+    
     // Элементы DOM
     const historyList = document.getElementById('history-list');
     
@@ -29,10 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Хранение предыдущего состояния
     let prevNumbers = [];
-    let isAnimationInProgress = false;
     
-    // Инициализация Socket.IO
-    const socket = io();
+    // Инициализация Socket.IO с указанием базового пути
+    const socket = io({ path: `${basePath}/socket.io` });
     
     // Присоединение к комнате стола
     socket.emit('joinTable', tableId);
@@ -45,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Первоначальная загрузка данных стола
     async function loadInitialTableData() {
         try {
-            const response = await fetch(`/api/table/${tableId}`);
+            const response = await fetch(`${basePath}/api/table/${tableId}`);
             const tableData = await response.json();
             updateTableDisplay(tableData);
         } catch (error) {
@@ -59,7 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
         minBetElement.textContent = tableData.minBet;
         maxBetElement.textContent = tableData.maxBet;
         
-        // Обновление истории выпадений с улучшенной анимацией
+        // Обновление истории выпадений
         updateHistoryList(tableData.lastNumbers);
         
         // Обновление статистики
@@ -72,138 +74,45 @@ document.addEventListener('DOMContentLoaded', () => {
         prevNumbers = [...tableData.lastNumbers];
     }
     
-    // Обновление истории выпадений с улучшенной анимацией
+    // Обновление истории выпадений
     function updateHistoryList(numbers) {
-        // Если анимация уже выполняется, пропустить
-        if (isAnimationInProgress) return;
-        
         // Если история пуста, не отображаем ничего
         if (numbers.length === 0) {
             historyList.innerHTML = '';
             return;
         }
         
-        // Если это первая загрузка или предыдущего состояния нет
-        if (prevNumbers.length === 0 || historyList.childElementCount === 0) {
-            historyList.innerHTML = '';
-            
-            // Создаем элементы для каждого числа в истории
-            numbers.forEach((num, index) => {
-                const container = document.createElement('div');
-                const containerClasses = [`history-item-container`, `${num.color}-container`];
-                
-                // Добавляем класс last-container для первого элемента
-                if (index === 0) {
-                    containerClasses.push('last-container');
-                }
-                
-                container.className = containerClasses.join(' ');
-                
-                const historyItem = document.createElement('div');
-                historyItem.className = `history-item ${num.color}`;
-                historyItem.textContent = num.value;
-                
-                // Первое число - самое последнее
-                if (index === 0) {
-                    historyItem.classList.add('last');
-                }
-                
-                container.appendChild(historyItem);
-                historyList.appendChild(container);
-            });
-            return;
-        }
+        // Очищаем текущую историю
+        historyList.innerHTML = '';
         
-        // Проверяем, есть ли новое число (сравниваем с предыдущим состоянием)
-        if (numbers[0].value !== prevNumbers[0].value || numbers[0].color !== prevNumbers[0].color) {
-            isAnimationInProgress = true;
+        // Создаем элементы для каждого числа в истории
+        numbers.forEach((num, index) => {
+            const container = document.createElement('div');
+            const containerClasses = ['history-item-container', `${num.color}-container`];
             
-            // Шаг 1: Уменьшаем старую последнюю цифру
-            const currentContainers = historyList.querySelectorAll('.history-item-container');
-            if (currentContainers.length > 0) {
-                const lastContainer = currentContainers[0];
-                const lastItem = lastContainer.querySelector('.history-item');
-                
-                // Уменьшаем последний элемент (анимация)
-                lastContainer.classList.remove('last-container');
-                // lastItem.classList.add('shrink');
-                lastItem.classList.remove('last');
-                
-                // Ждем завершения первой анимации (уменьшение)
-                setTimeout(() => {
-                    // Шаг 2: Создаем и добавляем новую цифру
-                    const newContainer = document.createElement('div');
-                    newContainer.className = `history-item-container ${numbers[0].color}-container last-container`;
-                    
-                    const newItem = document.createElement('div');
-                    newItem.className = `history-item ${numbers[0].color} last`;
-                    newItem.textContent = numbers[0].value;
-                    
-                    newContainer.appendChild(newItem);
-                    historyList.insertBefore(newContainer, historyList.firstChild);
-                    
-                    // Шаг 3: Смещаем все цифры вниз только после добавления нового элемента
-                    setTimeout(() => {
-                        // После того как добавлена новая цифра, смещаем предыдущие вниз
-                        for (let i = 1; i < currentContainers.length + 1; i++) {
-                            const container = historyList.children[i];
-                            if (container) {
-                                container.classList.add('move-down');
-                            }
-                        }
-                        
-                        // Удаляем последний элемент, если их больше 15
-                        if (currentContainers.length >= 15) {
-                            setTimeout(() => {
-                                if (historyList.children.length > 15) {
-                                    historyList.removeChild(historyList.children[historyList.children.length - 1]);
-                                }
-                                
-                                // Удаляем классы анимации после всех манипуляций
-                                for (let i = 1; i < historyList.children.length; i++) {
-                                    historyList.children[i].classList.remove('move-down');
-                                    const item = historyList.children[i].querySelector('.history-item');
-                                    if (item) item.classList.remove('shrink');
-                                }
-                                
-                                // Позиционируем контейнеры по краям после завершения анимации
-                                for (let i = 1; i < historyList.children.length; i++) {
-                                    const container = historyList.children[i];
-                                    if (container.classList.contains('black-container')) {
-                                        container.style.justifyContent = 'flex-start';
-                                    } else if (container.classList.contains('red-container')) {
-                                        container.style.justifyContent = 'flex-end';
-                                    }
-                                }
-                                
-                                isAnimationInProgress = false;
-                            }, 0);
-                        } else {
-                            // Удаляем классы анимации
-                            setTimeout(() => {
-                                for (let i = 1; i < historyList.children.length; i++) {
-                                    historyList.children[i].classList.remove('move-down');
-                                    const item = historyList.children[i].querySelector('.history-item');
-                                    if (item) item.classList.remove('shrink');
-                                }
-                                
-                                // Позиционируем контейнеры по краям после завершения анимации
-                                for (let i = 1; i < historyList.children.length; i++) {
-                                    const container = historyList.children[i];
-                                    if (container.classList.contains('black-container')) {
-                                        container.style.justifyContent = 'flex-start';
-                                    } else if (container.classList.contains('red-container')) {
-                                        container.style.justifyContent = 'flex-end';
-                                    }
-                                }
-                                
-                                isAnimationInProgress = false;
-                            }, 0);
-                        }
-                    }, 0); // Небольшая задержка перед началом смещения вниз
-                }, 0); // Задержка для завершения анимации уменьшения
+            // Добавляем класс last-container для первого элемента
+            if (index === 0) {
+                containerClasses.push('last-container');
             }
-        }
+            
+            container.className = containerClasses.join(' ');
+            
+            // Создаем элемент круга с числом
+            const historyItem = document.createElement('div');
+            historyItem.className = `history-item ${num.color}`;
+            historyItem.textContent = num.value;
+            
+            // Первое число - самое последнее (большое)
+            if (index === 0) {
+                historyItem.classList.add('last');
+            }
+            
+            container.appendChild(historyItem);
+            historyList.appendChild(container);
+        });
+        
+        // Сохраняем текущие числа для следующего обновления
+        prevNumbers = [...numbers];
     }
     
     // Обновление статистики

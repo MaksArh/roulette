@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>22 Hub - Выбор стола</title>
+    <script>
+        // Скрипт для определения базового пути
+        window.basePath = window.location.pathname;
+        if (window.basePath.endsWith('/')) {
+            window.basePath = window.basePath.slice(0, -1);
+        }
+    </script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -99,9 +106,12 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Получение базового пути
+            const basePath = window.basePath || '';
+            
             // Получение списка столов с сервера
             try {
-                const response = await fetch('/api/tables');
+                const response = await fetch(basePath + '/api/tables');
                 const tables = await response.json();
                 
                 const tableGrid = document.getElementById('table-grid');
@@ -109,13 +119,13 @@
                 // Если список пуст - создадим 5 столов по умолчанию
                 if (tables.length === 0) {
                     for (let i = 1; i <= 9; i++) {
-                        const tableCard = createTableCard({ tableId: i.toString() });
+                        const tableCard = createTableCard({ tableId: i.toString() }, basePath);
                         tableGrid.appendChild(tableCard);
                     }
                 } else {
                     // Иначе отобразим существующие столы
                     tables.forEach(table => {
-                        const tableCard = createTableCard(table);
+                        const tableCard = createTableCard(table, basePath);
                         tableGrid.appendChild(tableCard);
                     });
                 }
@@ -125,19 +135,19 @@
                 // Если ошибка, все равно отобразим 5 столов по умолчанию
                 const tableGrid = document.getElementById('table-grid');
                 for (let i = 1; i <= 9; i++) {
-                    const tableCard = createTableCard({ tableId: i.toString() });
+                    const tableCard = createTableCard({ tableId: i.toString() }, basePath);
                     tableGrid.appendChild(tableCard);
                 }
             }
             
             // Кнопка администрирования
             document.getElementById('admin-button').addEventListener('click', () => {
-                window.location.href = '/admin';
+                window.location.href = basePath + '/admin';
             });
         });
         
         // Создание карточки стола
-        function createTableCard(table) {
+        function createTableCard(table, basePath) {
             const tableCard = document.createElement('div');
             tableCard.className = 'table-card';
             tableCard.innerHTML = `
@@ -146,7 +156,7 @@
             `;
             
             tableCard.addEventListener('click', () => {
-                window.location.href = `/table/${table.tableId}`;
+                window.location.href = `${basePath}/table/${table.tableId}`;
             });
             
             return tableCard;

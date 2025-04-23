@@ -1,5 +1,5 @@
 import express from 'express';
-import { getTable, addNumberToTable, resetTable, getAllTables } from '../services/tableService';
+import { getTable, addNumberToTable, resetTable, getAllTables, revertLastNumber } from '../services/tableService';
 import { authenticateAdmin } from '../middleware/auth';
 
 const router = express.Router();
@@ -53,6 +53,18 @@ router.post('/table/:id/reset', authenticateAdmin, async (req, res) => {
     res.json(resetData);
   } catch (error) {
     console.error('Ошибка при сбросе стола:', error);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+// Отмена последнего добавленного числа (требуется аутентификация)
+router.post('/table/:id/revert', authenticateAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedTable = await revertLastNumber(id);
+    res.json(updatedTable);
+  } catch (error) {
+    console.error('Ошибка при отмене последнего числа:', error);
     res.status(500).json({ error: 'Ошибка сервера' });
   }
 });

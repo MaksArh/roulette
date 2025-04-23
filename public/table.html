@@ -7,9 +7,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quantico:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/table.css">
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="/css/table-script.js" defer></script>
+    <link rel="stylesheet" href="/roulette/css/table.css">
+    <script src="/roulette/socket.io/socket.io.js"></script>
+    <script>
+        // Скрипт для определения базового пути
+        window.basePath = '/roulette'; // Жестко задаем базовый путь
+    </script>
+    <script src="/roulette/css/table-script.js" defer></script>
 </head>
 <body>
     <div class="container">
@@ -24,7 +28,7 @@
         <!-- Правая колонка - статистика -->
         <div class="right-column">
             <div class="logo">
-                <img src="/media/logo.png" alt="22 Hub">
+                <img src="/roulette/media/logo.png" alt="22 Hub">
             </div>
             
             <!-- Лимиты ставок -->
@@ -32,14 +36,14 @@
                 <div class="limit-row">
                     <div class="limit-type">MIN</div>
                     <div class="limit-value">100</div>
-                    <img src="/media/currency.png" alt="Currency">
+                    <img src="/roulette/media/currency.png" alt="Currency">
                     <div class="limit-equal">= 1$</div>
                 </div>
                 <div class="limit-divider"></div>
                 <div class="limit-row">
                     <div class="limit-type">MAX</div>
                     <div class="limit-value">1000</div>
-                    <img src="/media/currency.png" alt="Currency">
+                    <img src="/roulette/media/currency.png" alt="Currency">
                     <div class="limit-equal">= 100$</div>
                 </div>
             </div>

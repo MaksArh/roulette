@@ -1,7 +1,7 @@
 /* Подключаем шрифт Gilroy */
 @font-face {
     font-family: 'Gilroy';
-    src: url('/media/Gilroy-ExtraBold.otf') format('opentype');
+    src: url('../media/Gilroy-ExtraBold.otf') format('opentype');
     font-weight: bold;
     font-style: normal;
     font-display: swap;
@@ -9,10 +9,42 @@
 
 @font-face {
     font-family: 'Gilroy';
-    src: url('/media/Gilroy-ExtraBold.otf') format('opentype');
+    src: url('../media/Gilroy-ExtraBold.otf') format('opentype');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
+}
+
+:root {
+    /* Базовый размер шрифта, масштабируемый от ширины вьюпорта,
+       но с минимальным и максимальным значением для читаемости.
+       1vw примерно соответствует 1% ширины экрана.
+       Подбираем значения для целевого разрешения 1080px.
+       При 1080px ширины, 1vw = 10.8px.
+       Предположим, базовый шрифт 16px при 1080px -> 16 / 10.8 ≈ 1.48vw
+       Мин. 12px, Макс. 20px (примерно) */
+    font-size: clamp(12px, 1.48vw, 20px);
+
+    /* Переменные для размеров истории */
+    --history-item-size-small: clamp(80px, 10vw, 120px); /* ~108px при 1080px */
+    --history-item-size-large: clamp(160px, 20.1vw, 240px); /* ~218px при 1080px */
+    --history-font-size-small: clamp(40px, 5.1vw, 65px); /* ~56px при 1080px */
+    --history-font-size-large: clamp(80px, 11.1vw, 130px); /* ~120px при 1080px */
+
+    /* Переменные для правой колонки */
+     --limit-type-font-size: clamp(28px, 3.5vw, 42px); /* ~38px */
+     --limit-value-font-size: clamp(48px, 5.9vw, 70px); /* ~64px */
+     --limit-equal-font-size: clamp(24px, 3vw, 36px); /* ~32px */
+     --limit-img-height: clamp(30px, 3.7vw, 45px); /* ~40px */
+     --stats-title-font-size: clamp(28px, 3.5vw, 42px); /* ~38px */
+     --bar-height-normal: clamp(60px, 8vh, 100px); /* ~86px на 1080 высоте */
+     --bar-height-large: clamp(90px, 11.8vh, 140px); /* ~128px на 1080 высоте */
+     --hot-cold-container-height: clamp(150px, 19vh, 220px); /* ~205px на 1080 высоте */
+     --hot-cold-circle-size: clamp(50px, 6.5vw, 80px); /* ~70px */
+     --hot-cold-circle-font-size: clamp(36px, 4.6vw, 56px); /* ~50px */
+     --hot-cold-count-font-size: clamp(28px, 3.5vw, 42px); /* ~38px */
+
+     --number-stroke-width: clamp(4px, 0.55vw, 8px); /* ~6px */
 }
 
 * {
@@ -24,15 +56,16 @@
 
 body {
     background-color: #0e0e16;
-    background-image: url('/media/main_background.png');
+    background-image: url('../media/main_background.png');
     background-size: cover;
     background-position: center;
     color: #ffffff;
-    height: 100vh;
+    height: 100vh; /* Используем vh */
     width: 100%;
-    overflow: hidden;
+    overflow: hidden; /* Оставляем, если прокрутка не нужна */
     display: flex;
     flex-direction: column;
+    font-size: 1rem; /* Базовый размер от :root */
 }
 
 /* Основной контейнер */
@@ -40,18 +73,21 @@ body {
     display: flex;
     flex: 1;
     height: 100%;
+    overflow: visible; /* Разрешаем контенту выходить */
 }
 
 /* Левая колонка - история выпадений */
 .left-column {
-    width: 38%;
-    box-shadow: 0 0 10px rgba(94, 222, 255, 0.5);
-    padding: 20px 40px;
+    width: 38%; /* Оставляем проценты */
+    /* Уберем фиксированный box-shadow, заменим на относительный или уберем */
+    /* box-shadow: 0 0 10px rgba(94, 222, 255, 0.5); */
+    padding: 0vh 3vw; /* Отступы в % от viewport */
     display: flex;
     flex-direction: column;
     align-items: center;
     position: relative;
     height: 100%;
+    overflow: visible;
 }
 
 /* Вертикальный разделитель */
@@ -60,9 +96,10 @@ body {
     right: 0;
     top: 0;
     height: 100%;
-    width: 8px;
+    width: clamp(5px, 0.74vw, 10px); /* Ширина разделителя ~8px */
     background-color: #7A23C1;
-    box-shadow: 0 0 10px #991DFF, 0 0 20px #991DFF;
+    /* Можно использовать vw/vh для тени или убрать */
+    box-shadow: 0 0 1vw #991DFF, 0 0 2vw #991DFF;
 }
 
 /* История выпадений */
@@ -72,258 +109,136 @@ body {
     width: 100%;
     align-items: center;
     height: 100%;
-    overflow: hidden;
-    padding-top: 10px; /* Добавляем отступ сверху */
+    overflow: visible;
+    padding-top: 1vh; /* Отступ сверху */
+    gap: 1vh; /* Расстояние между элементами */
 }
 
 /* Контейнер для элемента истории */
 .history-item-container {
     width: 100%;
     display: flex;
-    justify-content: center;
-    margin-bottom: 10px;
-    /* transition: transform 0.3s ease; Оставляем только необходимый переход */
+    /* margin-bottom: 10px; -> заменено на gap в history-list */
+    overflow: visible;
+    /* Добавляем немного высоты, чтобы фон не обрезался */
+    min-height: calc(var(--history-item-size-small) * 1.2);
+}
+.history-item-container.last-container {
+     min-height: calc(var(--history-item-size-large) * 1.2);
 }
 
 /* Позиционирование контейнеров по цветам */
-.history-item-container.black-container:not(.last-container) {
+.black-container {
     justify-content: flex-start;
 }
 
-.history-item-container.red-container:not(.last-container) {
+.red-container {
     justify-content: flex-end;
 }
 
-.history-item-container.green-container:not(.last-container) {
+.green-container {
     justify-content: center;
+}
+
+/* Последний контейнер всегда по центру */
+.last-container {
+    justify-content: center !important;
 }
 
 /* Сам элемент истории (кружок с цифрой) */
 .history-item {
-    width: 108px;
-    height: 108px;
+    width: var(--history-item-size-small);
+    height: var(--history-item-size-small);
     border-radius: 50%;
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Gilroy', sans-serif !important;
     font-weight: bold;
-    font-size: 56px;
+    font-size: var(--history-font-size-small);
     color: white;
-    transition: all 0.3s ease;
     background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    position: relative;
+    z-index: 1;
     overflow: visible;
+    flex-shrink: 0; /* Предотвращаем сжатие */
 }
 
 /* Увеличенный последний элемент (самое новое число) */
 .history-item.last {
-    width: 218px;
-    height: 218px;
-    font-size: 120px;
-    overflow: visible;
-
+    width: var(--history-item-size-large);
+    height: var(--history-item-size-large);
+    font-size: var(--history-font-size-large);
 }
 
 /* Цвета для элементов истории */
 .history-item.black {
-    overflow: visible;
-
-    background-image: url('/media/black_circle.png');
-    position: relative;
+    background-image: url('../media/black_circle.png');
 }
 
 .history-item.red {
-    overflow: visible;
-
-    background-image: url('/media/red_circle.png');
-    position: relative;
+    background-image: url('../media/red_circle.png');
 }
 
 .history-item.green {
-    overflow: visible;
-
-    background-image: url('/media/green_circle.png');
-    position: relative;
+    background-image: url('../media/green_circle.png');
 }
 
-/* Свечение для элементов истории */
-.history-item::after {
-    content: '';
+/* Фоновый круг (circle_background) */
+.history-item::before {
+    content: "";
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
-    height: 80%;
-    border-radius: 50%;
-    filter: blur(55px);
+    /* Размеры управляются через background-size теперь */
+    width: 100%; /* Размер псевдоэлемента равен родителю */
+    height: 100%;
+    top: 0;
+    left: 0;
+    transform: none; /* Убираем transform */
+    background-position: center;
+    background-size: 180% 180%; /* Увеличиваем фон относительно псевдоэлемента */
+    background-repeat: no-repeat;
     z-index: -1;
+    pointer-events: none;
 }
 
 .history-item.black::before {
-    background-repeat: no-repeat;
-
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 33px;
-    left: 0;
-    background-image: url('/media/black_circle_background.png');
-    background-position: center;
-    z-index: -2;
+    background-image: url('../media/black_circle_background.png');
 }
 
 .history-item.red::before {
-    background-repeat: no-repeat;
-
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 33px;
-    left: 0;
-    background-image: url('/media/red_circle_background.png');
-    background-position: center;
-    z-index: -2;
+    background-image: url('../media/red_circle_background.png');
 }
 
 .history-item.green::before {
-    background-repeat: no-repeat;
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 33px;
-    left: 0;
-    background-image: url('/media/green_circle_background.png');
-    background-position: center;
-    z-index: -2;
+    background-image: url('../media/green_circle_background.png');
 }
 
-/* Особое свечение для последнего элемента */
-.history-item.last::after {
-    width: 85%;
-    height: 85%;
+/* Особый фон для последнего элемента */
+.history-item.last::before {
+     background-size: 150% 150%; /* Немного другой размер для большого */
 }
-
-.history-item.last.black::before {
-    background-repeat: no-repeat;
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 52px;
-    left: 0;
-    background-image: url(/media/black_circle_background.png);
-    background-size: 150% 150%;
-    background-position: center;
-    z-index: -2;
-}
-
-.history-item.last.red::before {
-    background-repeat: no-repeat;
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 52px;
-    left: 0;
-    background-image: url(/media/red_circle_background.png);
-    background-size: 150% 150%;
-    background-position: center;
-    z-index: -2;
-}
-
-.history-item.last.green::before {
-    background-repeat: no-repeat;
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 52px;
-    left: 0;
-    background-image: url(/media/green_circle_background.png);
-    background-size: 150% 150%;
-    background-position: center;
-    z-index: -2;
-}
-
-/* Упрощенные анимации
-@keyframes fadeIn {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes moveDown {
-    from { transform: translateY(0); }
-    to { transform: translateY(123px); }
-}
-
-@keyframes shrink {
-    from { 
-        width: 218px; 
-        height: 218px; 
-        font-size: 120px;
-    }
-    to { 
-        width: 108px; 
-        height: 108px; 
-        font-size: 56px;
-    }
-} */
-
-/* Классы для активации анимаций
-.fade-in {
-    animation: fadeIn 0.3s ease-out forwards;
-}
-
-.move-down {
-    animation: moveDown 0.3s ease-out forwards;
-}
-
-.shrink {
-    animation: shrink 0.3s ease-out forwards;
-}
-
-.shift-left {
-    animation: shiftLeft 0.5s ease forwards;
-}
-
-.shift-right {
-    animation: shiftRight 0.5s ease forwards;
-}
-
-@keyframes shiftLeft {
-    from { justify-content: center; }
-    to { justify-content: flex-start; }
-}
-
-@keyframes shiftRight {
-    from { justify-content: center; }
-    to { justify-content: flex-end; }
-} */
 
 /* Правая колонка - статистика */
 .right-column {
     width: 62%;
-    padding: 3vh;
+    padding: 3vh 2vw; /* Используем vh/vw */
     display: flex;
     flex-direction: column;
     height: 100%;
-    justify-content: space-between;
+    justify-content: space-between; /* Оставляем */
+    /* gap: 1.5vh; Добавляем промежутки */
 }
 
 /* Логотип */
 .logo {
     text-align: center;
-    /* margin-bottom: 3vh; */
+    flex-shrink: 0; /* Не сжимать лого */
 }
 
 .logo img {
-    height: auto;
+    width: 75%; /* Ограничиваем ширину логотипа */
 }
 
 /* Лимиты ставок */
@@ -331,93 +246,100 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    /* margin-bottom: 3vh; */
-    background-image: url('/media/main_header_background.gif');
+    background-image: url('../media/main_header_background.gif');
     background-size: 100% 100%;
     background-position: center;
-    border-radius: 15px;
+    border-radius: clamp(10px, 1.4vw, 20px); /* Адаптивный радиус */
     width: 100%;
+    padding: 1vh 1vw; /* Внутренние отступы */
+    flex-shrink: 0;
 }
 
 .limit-row {
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 5px 0;
+    padding: 0.5vh 1vw; /* Отступы */
+    gap: 1vw; /* Промежуток между элементами */
 }
 
 .limit-type {
     font-family: 'Quantico', sans-serif;
-    font-size: 38px;
+    font-size: var(--limit-type-font-size);
     font-weight: bold;
     color: white;
-    width: 100px; /* Фиксированная ширина для выравнивания */
+    width: auto; /* Убираем фиксированную ширину */
+    flex-shrink: 0;
 }
 
 .limit-value {
     font-family: 'Gilroy', sans-serif !important;
-    font-size: 64px;
+    font-size: var(--limit-value-font-size);
     font-weight: bold;
     color: white;
-    margin-right: 10px;
-    margin-left: auto; /* Отодвинет значение вправо после MIN/MAX */
+    margin-left: auto; /* Отодвинет значение вправо */
+    flex-shrink: 0;
+    padding-left: 1vw;
 }
 
 .limit-row img {
-    height: 40px;
-    margin: 0 10px;
+    height: var(--limit-img-height);
+    width: auto;
+    flex-shrink: 0;
 }
 
 .limit-equal {
     text-align: right;
-    min-width: 105px;
+    min-width: auto; /* Убираем */
     font-family: 'Quantico', sans-serif;
-    font-size: 32px;
+    font-size: var(--limit-equal-font-size);
     color: white;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .limit-divider {
     background-color: #7A23C1;
-    box-shadow: 0 0 10px #991DFF, 0 0 20px #991DFF;
-    height: 8px;
+    box-shadow: 0 0 1vh #991DFF, 0 0 2vh #991DFF;
+    height: clamp(4px, 0.7vh, 8px); /* Адаптивная высота */
     width: 100%;
+    flex-shrink: 0;
+    margin: 0.5vh 0;
 }
 
 /* Секция статистики */
 .stats-section {
-    /* margin-bottom: 3vh; */
+    flex-shrink: 0;
 }
 
 .stats-title {
     display: flex;
     justify-content: space-between;
-    /* margin-bottom: 1vh; */
-    font-size: 38px;
+    font-size: var(--stats-title-font-size);
     font-weight: bold;
+    margin-bottom: 0.5vh;
 }
 
 .stats-title span {
     font-family: 'Quantico', sans-serif;
     color: #ffffff;
-    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.5);
+    text-shadow: 0px 0.1vh 0.2vh rgba(0, 0, 0, 0.5);
 }
 
 /* Полосы процентов */
 .bar-container {
-    height: 86px;
+    height: var(--bar-height-normal);
     background-color: transparent;
-    border-radius: 20px;
+    border-radius: clamp(10px, 1.8vh, 25px); /* ~20px */
     overflow: visible;
     position: relative;
-    /* margin-bottom: 1vh; */
     display: flex;
-    gap: 4px;
-    padding: 2px;
+    gap: clamp(2px, 0.3vw, 5px); /* ~4px */
+    padding: clamp(1px, 0.2vh, 3px); /* ~2px */
 }
 
 .bar-container.large {
-    height: 128px;
+    height: var(--bar-height-large);
 }
 
 .bar-section {
@@ -427,54 +349,54 @@ body {
     justify-content: center;
     align-items: center;
     font-family: 'Quantico', sans-serif;
-    font-size: 1.2rem;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    border-radius: 8px;
-    margin: 1px;
+    font-size: clamp(0.8rem, 1.2vw, 1.5rem); /* Адаптивный font-size */
+    text-shadow: 0 0 0.5vw rgba(0, 0, 0, 0.5);
+    border-radius: clamp(4px, 0.7vh, 10px); /* ~8px */
+    margin: clamp(1px, 0.1vh, 2px); /* ~1px */
     box-sizing: border-box;
     position: relative;
 }
 
 /* Цвета для полос */
 .black-section {
-    box-shadow: inset 0 0 14px 0 #313131, inset 0 0 14px 0 #313131, 0 0 22px 0 #5c5c5c;
+    box-shadow: inset 0 0 1.3vw 0 #313131, inset 0 0 1.3vw 0 #313131, 0 0 2vw 0 #5c5c5c;
     background: linear-gradient(162deg, #5a5a5a -200%, #080808 -65.63%, #434343 150%);
 }
 
 .green-section {
-    box-shadow: inset 0 0 4px 0 #3f0, inset 0 0 3px 0 #3f0, 0 0 9px 0 #3f0;
+    box-shadow: inset 0 0 0.4vw 0 #3f0, inset 0 0 0.3vw 0 #3f0, 0 0 0.8vw 0 #3f0;
     background: linear-gradient(162deg, #2eff23 -200%, #045100 -65.63%, #2eff23 150%);
 }
 
 .red-section {
-    box-shadow: inset 0 0 14px 0 #f00, inset 0 0 14px 0 #f00, 0 0 22px 0 #ff4f4f;
+    box-shadow: inset 0 0 1.3vw 0 #f00, inset 0 0 1.3vw 0 #f00, 0 0 2vw 0 #ff4f4f;
     background: linear-gradient(162deg, #ff2323 -200%, #510000 -65.63%, #ff2323 150%);
 }
 
 .low-section {
-    box-shadow: inset 0 0 14px 0 #239fff, inset 0 0 14px 0 #239fff, 0 0 22px 0 #239fff;
+    box-shadow: inset 0 0 1.3vw 0 #239fff, inset 0 0 1.3vw 0 #239fff, 0 0 2vw 0 #239fff;
     background: linear-gradient(135deg, #239fff -200%, #003551 -75.48%, #239fff 150%);
 }
 
 .high-section {
-    box-shadow: inset 0 0 14px 0 #ff23e5, inset 0 0 14px 0 #ff23e5, 0 0 22px 0 #ff23e5;
+    box-shadow: inset 0 0 1.3vw 0 #ff23e5, inset 0 0 1.3vw 0 #ff23e5, 0 0 2vw 0 #ff23e5;
     background: linear-gradient(162deg, #ff23e5 -200%, #510039 -65.63%, #ff23e5 150%);
 }
 
 .odd-section {
-    box-shadow: inset 0 0 14px 0 #239fff, inset 0 0 14px 0 #239fff, 0 0 22px 0 #239fff;
+    box-shadow: inset 0 0 1.3vw 0 #239fff, inset 0 0 1.3vw 0 #239fff, 0 0 2vw 0 #239fff;
     background: linear-gradient(135deg, #239fff -200%, #003551 -75.48%, #239fff 150%);
 }
 
 .even-section {
-    box-shadow: inset 0 0 14px 0 #ff23e5, inset 0 0 14px 0 #ff23e5, 0 0 22px 0 #ff23e5;
+    box-shadow: inset 0 0 1.3vw 0 #ff23e5, inset 0 0 1.3vw 0 #ff23e5, 0 0 2vw 0 #ff23e5;
     background: linear-gradient(162deg, #ff23e5 -200%, #510039 -65.63%, #ff23e5 150%);
 }
 
 /* Горячие и холодные числа */
 .hot-numbers-section, .cold-numbers-section {
-    /* margin-bottom: 2vh; */
     position: relative;
+    flex-shrink: 0;
 }
 
 .numbers-title {
@@ -490,11 +412,11 @@ body {
     color: #3498db;
 }
 
-.hot-numbers-container {
-    margin:0px -15px;
-    height: 205px;
+.hot-numbers-container, .cold-numbers-container {
+    margin: 0 clamp(-20px, -1.8vw, -10px); /* ~-15px */
+    height: var(--hot-cold-container-height);
     position: relative;
-    border-radius: 20px;
+    border-radius: clamp(15px, 1.8vh, 25px); /* ~20px */
     display: flex;
     justify-content: space-around;
     align-items: center;
@@ -502,106 +424,102 @@ body {
     overflow: visible;
 }
 
-.hot-numbers-container::before {
+.hot-numbers-container::before, .cold-numbers-container::before {
     content: "";
     position: absolute;
     width: 100%;
-    height: 85%;
-    top: 13px;
-    left: 0;
-    background-image: url('/media/hot_animated_background.gif');
-    background-size: 100% 100%;
-    background-position: center;
-    border-radius: 20px;
-    z-index: -3;
-}
-
-.hot-numbers-container::after {
-    content: "";
-    position: absolute;
-    width: 121%;
-    height: 156%;
-    background: url('/media/hot_frame_background.png') no-repeat;
-    background-size: 100% 100%;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    z-index: -2;
-}
-
-.cold-numbers-container {
-    margin:0px -15px;
-    height: 205px;
-    position: relative;
-    border-radius: 20px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 0 2%;
-    overflow: visible;
-}
-
-.cold-numbers-container::before {
-    content: "";
-    position: absolute;
-    width: 100%;
-    height: 100%;
+    height: 100%; /* Фон занимает весь контейнер */
     top: 0;
     left: 0;
-    background-image: url('/media/ice_background_animated.gif');
-    background-size: 100% 100%;
+    background-size: cover; /* Пусть фон заполняет */
     background-position: center;
-    border-radius: 20px;
+    border-radius: inherit; /* Наследуем радиус */
     z-index: -3;
 }
+.hot-numbers-container::before {
+    background-image: url('../media/hot_animated_background.gif');
+    height: 85%; /* Восстанавливаем оригинальное значение */
+    top: clamp(8px, 1.2vh, 15px); /* ~13px */
+}
+.cold-numbers-container::before {
+     background-image: url('../media/ice_background_animated.gif');
+}
 
-.cold-numbers-container::after {
+.hot-numbers-container::after, .cold-numbers-container::after {
     content: "";
     position: absolute;
-    width: 120%;
+    width: 120%; /* Оставляем проценты, будет масштабироваться с контейнером */
     height: 150%;
-    background: url('/media/ice_frame_background.png') no-repeat;
     background-size: 100% 100%;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: -2;
+}
+.hot-numbers-container::after {
+    background-image: url('../media/hot_frame_background.png');
+    width: 121%;
+    height: 156%;
+}
+.cold-numbers-container::after {
+     background-image: url('../media/ice_frame_background.png');
 }
 
 .hot-numbers-grid, .cold-numbers-grid {
-    padding: 13px 13px 13px 136px;
+    /* Общий вертикальный отступ */
+    padding-top: clamp(8px, 1.2vh, 15px);
+    padding-bottom: clamp(8px, 1.2vh, 15px);
+    /* Отступ справа, чтобы соответствовать вертикальным */
+    padding-right: clamp(8px, 1.2vh, 15px);
+    /* Добавляем значительный отступ слева для текста на фоне */
+    padding-left: 12vw; 
     display: flex;
-    justify-content: space-around;
+    justify-content: space-around; /* Оставляем space-around для распределения оставшегося места */
     align-items: center;
     width: 100%;
+    gap: 1vw; /* Добавляем промежутки */
+    box-sizing: border-box; /* Убедимся, что padding включен в ширину */
 }
 
 .number-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    margin: 0 10px;
+    /* margin: 0 10px; -> заменено на gap */
 }
 
 .number-circle {
     position: relative;
-    width: 70px;
-    height: 70px;
+    width: var(--hot-cold-circle-size);
+    height: var(--hot-cold-circle-size);
     display: flex;
     justify-content: center;
     align-items: center;
     font-family: 'Gilroy', sans-serif !important;
-    font-size: 50px;
+    font-size: var(--hot-cold-circle-font-size);
     font-weight: bold;
-    margin-bottom: -12px;
-    filter: none;
+    margin-bottom: -1.1vh; /* ~-12px */
+    filter: none; /* Убираем, т.к. обводка через псевдоэлемент */
 }
 
-/* Отключаем предыдущий метод с псевдоэлементом, если он не работает */
+/* Обводка текста через псевдоэлемент */
 .number-circle::before {
-    display: none;
+    content: attr(data-text); /* Берем текст из data-атрибута */
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex; /* Важно для центрирования */
+    justify-content: center;
+    align-items: center;
+    -webkit-text-stroke: var(--number-stroke-width) #fff; /* Белая обводка */
+    color: transparent; /* Сам текст псевдоэлемента прозрачный */
+    z-index: -1; /* Позади основного текста */
+    /* Наследуем стили шрифта */
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    display: flex !important; /* Переопределяем display: none выше */
 }
 
 /* Цвета для обводки кружков с номерами */
@@ -661,8 +579,9 @@ body {
 
 .number-count {
     font-family: 'Quantico', sans-serif;
-    font-size: 38px;
+    font-size: var(--hot-cold-count-font-size);
     font-weight: bold;
+    margin-top: 0.5vh;
 }
 
 /* Увеличенный последний элемент */

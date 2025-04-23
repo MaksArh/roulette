@@ -5,12 +5,13 @@ import { Table } from '../types';
 let io: SocketServer;
 
 // Инициализация Socket.IO сервера
-export function initSocketServer(httpServer: HttpServer): void {
+export function initSocketServer(httpServer: HttpServer, basePath: string = ''): void {
   io = new SocketServer(httpServer, {
     cors: {
       origin: '*',
       methods: ['GET', 'POST']
-    }
+    },
+    path: `${basePath}/socket.io` // Указываем путь для Socket.IO
   });
 
   io.on('connection', (socket: Socket) => {
@@ -34,7 +35,7 @@ export function initSocketServer(httpServer: HttpServer): void {
     });
   });
 
-  console.log('Socket.IO сервер инициализирован');
+  console.log('Socket.IO сервер инициализирован', basePath ? `на пути ${basePath}/socket.io` : '');
 }
 
 // Отправка обновлений стола всем подключенным клиентам

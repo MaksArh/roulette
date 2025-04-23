@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>22 Hub - Администрирование</title>
+    <script>
+        // Скрипт для определения базового пути
+        window.basePath = window.location.pathname.replace(/\/admin\/?$/, '');
+        if (window.basePath.endsWith('/')) {
+            window.basePath = window.basePath.slice(0, -1);
+        }
+    </script>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -239,6 +246,21 @@
             background-color: #e74c3c;
             color: white;
         }
+        .revert-button {
+            padding: 15px 40px;
+            background-color: #FFA500; /* Оранжевый цвет для отличия от кнопки сброса */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-right: 20px;
+        }
+        .revert-button:hover {
+            background-color: #FF8C00;
+        }
     </style>
 </head>
 <body>
@@ -287,7 +309,8 @@
         </div>
 
         <div class="reset-container">
-            <button class="reset-button" id="reset-button">Сбросить данные стола</button>
+            <button id="revert-button" class="revert-button">Отменить последнее число</button>
+            <button id="reset-button" class="reset-button">Сбросить данные стола</button>
         </div>
     </div>
 
@@ -315,8 +338,23 @@
         </div>
     </div>
 
+    <!-- Модальное окно для подтверждения отмены -->
+    <div id="revert-modal" class="modal">
+        <div class="modal-content">
+            <h2>Подтверждение отмены</h2>
+            <p>Вы уверены, что хотите отменить последнее добавленное число?</p>
+            <div class="modal-buttons">
+                <button id="revert-cancel-button" class="cancel-button">Отмена</button>
+                <button id="revert-confirm-button" class="confirm-button">Подтвердить</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // Определение базового пути
+            const basePath = window.basePath || '';
+            
             // Элементы DOM
             const loginForm = document.getElementById('login-form');
             const tableSelectorContainer = document.getElementById('table-selector-container');
@@ -341,6 +379,12 @@
             const resetConfirmButton = document.getElementById('reset-confirm-button');
             const resetCancelButton = document.getElementById('reset-cancel-button');
             
+            // Элементы модального окна отмены
+            const revertButton = document.getElementById('revert-button');
+            const revertModal = document.getElementById('revert-modal');
+            const revertCancelButton = document.getElementById('revert-cancel-button');
+            const revertConfirmButton = document.getElementById('revert-confirm-button');
+            
             // Переменные состояния
             let password = '';
             let selectedTable = '1';
@@ -356,7 +400,7 @@
             
             // Обработчик кнопки "назад"
             backButton.addEventListener('click', () => {
-                window.location.href = '/';
+                window.location.href = basePath + '/';
             });
             
             // Аутентификация пользователя
@@ -364,7 +408,7 @@
                 password = passwordField.value;
                 
                 try {
-                    const response = await fetch('/api/auth', {
+                    const response = await fetch(basePath + '/api/auth', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -395,7 +439,7 @@
             // Загрузка списка столов для начального выбора
             async function loadTablesForSelection() {
                 try {
-                    const response = await fetch('/api/tables');
+                    const response = await fetch(basePath + '/api/tables');
                     const tables = await response.json();
                     
                     // Очистка списков
@@ -497,8 +541,12 @@
                     rouletteGrid.appendChild(button);
                 }
                 
-                // Обработчик кнопки сброса
+                // Удаляем старые обработчики и добавляем новые
+                resetButton.removeEventListener('click', openResetModal);
                 resetButton.addEventListener('click', openResetModal);
+                
+                revertButton.removeEventListener('click', openRevertModal);
+                revertButton.addEventListener('click', openRevertModal);
             }
             
             // Открытие модального окна подтверждения
@@ -528,7 +576,7 @@
             confirmButton.addEventListener('click', async () => {
                 if (currentNumberValue !== null) {
                     try {
-                        const response = await fetch(`/api/table/${selectedTable}/add`, {
+                        const response = await fetch(`${basePath}/api/table/${selectedTable}/add`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -567,7 +615,7 @@
             // Подтверждение сброса данных
             resetConfirmButton.addEventListener('click', async () => {
                 try {
-                    const response = await fetch(`/api/table/${selectedTable}/reset`, {
+                    const response = await fetch(`${basePath}/api/table/${selectedTable}/reset`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -588,6 +636,44 @@
                 
                 resetModal.style.display = 'none';
             });
+            
+            // Открытие модального окна отмены
+            function openRevertModal() {
+                revertModal.style.display = 'flex';
+            }
+            
+            // Закрытие модального окна отмены
+            revertCancelButton.addEventListener('click', () => {
+                revertModal.style.display = 'none';
+            });
+            
+            // Подтверждение отмены последнего числа
+            revertConfirmButton.addEventListener('click', async () => {
+                try {
+                    const response = await fetch(`${basePath}/api/table/${selectedTable}/revert`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            password: password
+                        })
+                    });
+                    
+                    if (response.ok) {
+                        console.log(`Последнее число стола ${selectedTable} отменено`);
+                    } else {
+                        console.error('Ошибка при отмене числа', await response.json());
+                    }
+                } catch (error) {
+                    console.error('Ошибка при отправке запроса:', error);
+                }
+                
+                revertModal.style.display = 'none';
+            });
+            
+            // Добавляем обработчик для кнопки отмены при инициализации
+            revertButton.addEventListener('click', openRevertModal);
         });
     </script>
 </body>

@@ -149,4 +149,42 @@ export async function initDefaultTables() {
       }
     }
   }
+}
+
+// Отмена (откат) последнего добавленного числа
+export async function revertLastNumber(tableId: string): Promise<Table> {
+  const table = await getTable(tableId);
+  
+  // Проверка, есть ли числа для отката
+  if (table.allNumbers.length === 0) {
+    return table; // Если история пуста, возвращаем стол без изменений
+  }
+  
+  // Удаляем последнее число из истории
+  const newAllNumbers = [...table.allNumbers];
+  newAllNumbers.shift(); // Удаляем первый элемент (последнее добавленное число)
+  
+  // Обновляем последние числа для отображения
+  const newLastNumbers = newAllNumbers.slice(0, DISPLAY_HISTORY_LENGTH);
+  
+  // Пересчитываем статистику без последнего числа
+  const statistics = calculateStatistics(newAllNumbers);
+  
+  // Обновляем стол в базе данных
+  const updatedTable: Table = {
+    ...table,
+    lastNumbers: newLastNumbers,
+    allNumbers: newAllNumbers,
+    statistics
+  };
+  
+  await tablesCollection.updateOne(
+    { tableId },
+    { $set: updatedTable }
+  );
+  
+  // Отправка обновления через WebSocket
+  emitTableUpdate(updatedTable);
+  
+  return updatedTable;
 } 
