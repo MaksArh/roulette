@@ -136,10 +136,10 @@ export async function initDefaultTables() {
   const tableCount = await tablesCollection.countDocuments();
   
   // Если столов меньше 30, создаем недостающие
-  if (tableCount < 30) {
+  if (tableCount < 8) {
     console.log(`Создание столов по умолчанию (существует ${tableCount} из 30)...`);
     
-    for (let i = 1; i <= 30; i++) {
+    for (let i = 1; i <= 8; i++) {
       const tableId = i.toString();
       const existingTable = await tablesCollection.findOne({ tableId });
       

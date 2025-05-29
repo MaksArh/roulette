@@ -1,6 +1,6 @@
 export const DEFAULT_MIN_BET = 100;
 export const DEFAULT_MAX_BET = 10000;
-export const MAX_HISTORY_LENGTH = 500;
+export const MAX_HISTORY_LENGTH = 200;
 export const DISPLAY_HISTORY_LENGTH = 15;
 export const HOT_COLD_NUMBERS_COUNT = 4;
 

@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Сетки горячих и холодных чисел
     const hotNumbersGrid = document.getElementById('hot-numbers-grid');
     const coldNumbersGrid = document.getElementById('cold-numbers-grid');
+    const tableNumberDisplay = document.getElementById('table-number-display'); // Получаем элемент для номера стола
     
     // Хранение предыдущего состояния
     let prevNumbers = [];
@@ -60,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Обновление лимитов ставок
         minBetElement.textContent = tableData.minBet;
         maxBetElement.textContent = tableData.maxBet;
+        
+        // Отображение номера стола
+        if (tableNumberDisplay && tableId) {
+            tableNumberDisplay.textContent = `AR${tableId}`;
+        }
         
         // Обновление истории выпадений
         updateHistoryList(tableData.lastNumbers);
@@ -119,8 +125,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateStatistics(statistics) {
         const { lowMidHigh, evenOddZero, colorDistribution } = statistics;
         
-        // Получаем все заголовки для статистики
-        const statsTitles = document.querySelectorAll('.stats-title');
+        // Получаем все заголовки для статистики внутри секций
+        const statsTitles = document.querySelectorAll('.stats-section .stats-title');
         
         // Расчет для LOW / HIGH / ZERO
         const lowValue = lowMidHigh.low || 0;
@@ -271,6 +277,47 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Загружаем начальные данные
     loadInitialTableData();
+
+    // Функция для создания и анимации частиц
+    function createParticles() {
+        const particleContainer = document.getElementById('particle-effect-container');
+        if (!particleContainer) return;
+
+        const numberOfParticles = 69; // Количество частиц
+
+        for (let i = 0; i < numberOfParticles; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+
+            // Случайный размер для центральной точки (если нужно варьировать яркость/размер свечения)
+            const baseSize = Math.random() * 1 + 1; // от 1px до 2px (небольшие изменения)
+            particle.style.width = `${baseSize}px`;
+            particle.style.height = `${baseSize}px`;
+
+            // Случайное начальное положение внутри контейнера
+            particle.style.left = `${Math.random() * 100}%`;
+            particle.style.top = `${Math.random() * 100}%`;
+            
+            // Случайная короткая длительность анимации для эффекта мерцания
+            particle.style.animationDuration = `${Math.random() * 0.8 + 0.5}s`; // от 0.5s до 1.3s
+            // Случайная задержка анимации для разнообразия
+            particle.style.animationDelay = `${Math.random() * 1.5}s`; // Задержка до 1.5s
+
+            // Обновляем позицию при каждой итерации анимации
+            particle.addEventListener('animationiteration', () => {
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100}%`;
+                // Можно также немного изменить animationDelay, чтобы следующая итерация 
+                // не была строго синхронизирована, если это необходимо для большего хаоса
+                // particle.style.animationDelay = `${Math.random() * 0.2}s`; // Например, небольшая доп. задержка
+            });
+
+            particleContainer.appendChild(particle);
+        }
+    }
+
+    // Создаем частицы при загрузке
+    createParticles();
     
     // Обработка переподключения при потере связи
     socket.on('disconnect', () => {

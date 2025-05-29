@@ -90,6 +90,75 @@ body {
     overflow: visible;
 }
 
+.last-number-gif-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Ширина равна ширине левой колонки */
+    height: 38vw; /* Высота равна ширине левой колонки (38% от ширины viewport) */
+    z-index: 0; /* Помещаем за другими элементами, если нужно */
+    display: flex;
+    justify-content: center;
+    align-items: flex-start; /* Выравниваем GIF по верху контейнера */
+}
+
+.last-number-gif {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Чтобы GIF заполнял контейнер, возможно искажение */
+    /* Или object-fit: contain; для сохранения пропорций, но могут быть пустые места */
+}
+
+/* Стили для эффекта частиц */
+#particle-effect-container {
+    position: absolute;
+    top: 0;
+    left: -50;    /* Возвращено к 0 */
+    width: 300%; /* Возвращено к 100% от родителя (.left-column) */
+    height: 250px; /* Оставляем вашу высоту */
+    pointer-events: none;
+    overflow: hidden; /* Чтобы частицы не вылетали за пределы контейнера */
+    z-index: 0; /* Как и было, под основным контентом */
+}
+
+.particle {
+    position: absolute;
+    width: 2px; /* Маленькая центральная точка */
+    height: 2px; /* Маленькая центральная точка */
+    background-color: rgba(255, 223, 50, 0.9); /* Яркий центр блестки */
+    border-radius: 50%;
+    /* Эффект размытой блестки через box-shadow */
+    box-shadow: 0 0 8px 4px rgba(255, 217, 0, 0.6); /* Размытое свечение, цвет как у вас */
+    animation-name: sparkleAndFade; /* Применяем новую анимацию */
+    animation-iteration-count: infinite;
+    /* Длительность и задержка будут из JS для разнообразия */
+    opacity: 0; /* Начинаем полностью невидимой */
+    will-change: transform, opacity, box-shadow;
+}
+
+@keyframes sparkleAndFade {
+    0% {
+        transform: scale(0.3) translate(0px, 0px);
+        opacity: 0;
+        box-shadow: 0 0 5px 2px rgba(255, 217, 0, 0.3);
+    }
+    20% { /* Резкое появление */
+        transform: scale(1) translate(2px, -3px); /* Небольшой случайный сдвиг */
+        opacity: 1;
+        box-shadow: 0 0 12px 6px rgba(255, 217, 0, 0.7); /* Ярче при появлении */
+    }
+    70% { /* Держится, немного двигается и начинает угасать */
+        transform: scale(0.8) translate(-3px, 2px); /* Другой небольшой сдвиг */
+        opacity: 0.7;
+        box-shadow: 0 0 8px 4px rgba(255, 217, 0, 0.5);
+    }
+    100% { /* Полное исчезновение */
+        transform: scale(0.3) translate(0px, 0px);
+        opacity: 0;
+        box-shadow: 0 0 5px 2px rgba(255, 217, 0, 0.2);
+    }
+}
+
 /* Вертикальный разделитель */
 .divider {
     position: absolute;
@@ -229,6 +298,20 @@ body {
     height: 100%;
     justify-content: space-between; /* Оставляем */
     /* gap: 1.5vh; Добавляем промежутки */
+    position: relative; /* Для позиционирования дочерних абсолютных элементов */
+}
+
+/* Стили для отображения номера стола AR{tableNumber} */
+.table-number-display {
+    position: absolute;
+    top: 2vh; /* Отступ сверху */
+    right: 2vw; /* Отступ справа */
+    font-family: 'Quantico', sans-serif;
+    font-size: 50px; /* Адаптивный размер шрифта */
+    font-weight: bold;
+    color: #ffffff;
+    text-shadow: 0 0 5px #5edeff, 0 0 10px #5edeff; /* Неоновое свечение */
+    z-index: 10; /* Поверх других элементов в правой колонке */
 }
 
 /* Логотип */

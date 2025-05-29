@@ -261,6 +261,37 @@
         .revert-button:hover {
             background-color: #FF8C00;
         }
+        /* Стили для отображения последних чисел */
+        .last-numbers-display {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #2a2a3a; /* Фон как у селектора стола */
+            border: 1px solid #333344; /* Граница как у селектора стола */
+            border-radius: 5px;
+            display: flex; /* Для отображения в строчку */
+            flex-wrap: wrap; /* Для переноса, если не помещаются */
+            gap: 8px; /* Промежутки между числами */
+            justify-content: flex-start; /* Выравнивание по левому краю */
+            min-height: 38px; /* Примерная высота для одной строки кружков */
+            box-sizing: border-box;
+        }
+
+        .last-number-item {
+            width: 28px; /* Немного меньше для компактности */
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 13px; /* Немного меньше */
+            color: white;
+            flex-shrink: 0; /* Чтобы кружки не сжимались */
+        }
+        .last-number-item.red { background-color: #e01e37; }
+        .last-number-item.black { background-color: #1a1a2e; border: 1px solid #444; }
+        .last-number-item.green { background-color: #2ecc71; }
+        /* Конец стилей для последних чисел */
     </style>
 </head>
 <body>
@@ -302,6 +333,10 @@
             <select class="table-select" id="table-select">
                 <!-- Опции будут добавлены динамически -->
             </select>
+            <!-- Контейнер для последних чисел -->
+            <div class="last-numbers-display" id="last-numbers-display">
+                <!-- Последние числа будут здесь -->
+            </div>
         </div>
 
         <div class="roulette-grid" id="roulette-grid">
@@ -369,6 +404,7 @@
             const rouletteGrid = document.getElementById('roulette-grid');
             const resetButton = document.getElementById('reset-button');
             const backButton = document.getElementById('back-button');
+            const lastNumbersDisplay = document.getElementById('last-numbers-display');
             
             // Модальные окна
             const confirmationModal = document.getElementById('confirmation-modal');
@@ -378,8 +414,6 @@
             const resetModal = document.getElementById('reset-modal');
             const resetConfirmButton = document.getElementById('reset-confirm-button');
             const resetCancelButton = document.getElementById('reset-cancel-button');
-            
-            // Элементы модального окна отмены
             const revertButton = document.getElementById('revert-button');
             const revertModal = document.getElementById('revert-modal');
             const revertCancelButton = document.getElementById('revert-cancel-button');
@@ -390,149 +424,150 @@
             let selectedTable = '1';
             let currentNumberValue = null;
             
+            // Начальная настройка видимости
+            loginForm.style.display = 'block';
+            tableSelectorContainer.style.display = 'none';
+            adminPanel.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
             // Обработчик входа
             loginButton.addEventListener('click', authenticateUser);
             passwordField.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    authenticateUser();
-                }
+                if (e.key === 'Enter') authenticateUser();
             });
             
-            // Обработчик кнопки "назад"
             backButton.addEventListener('click', () => {
                 window.location.href = basePath + '/';
             });
             
-            // Аутентификация пользователя
             async function authenticateUser() {
                 password = passwordField.value;
-                
+                errorMessage.style.display = 'none'; // Сначала скроем старую ошибку
                 try {
                     const response = await fetch(basePath + '/api/auth', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ password })
                     });
-                    
                     if (response.ok) {
-                        // Успешная аутентификация
                         loginForm.style.display = 'none';
                         tableSelectorContainer.style.display = 'block';
-                        errorMessage.style.display = 'none';
-                        
-                        // Загрузка столов
-                        loadTablesForSelection();
+                        await loadTablesForSelection(); // Загружаем столы для выбора
                     } else {
-                        // Ошибка аутентификации
+                        errorMessage.textContent = 'Неверный пароль';
                         errorMessage.style.display = 'block';
                         passwordField.value = '';
                     }
                 } catch (error) {
                     console.error('Ошибка аутентификации:', error);
+                    errorMessage.textContent = 'Ошибка сервера при аутентификации';
                     errorMessage.style.display = 'block';
-                    errorMessage.textContent = 'Ошибка сервера';
                 }
             }
             
-            // Загрузка списка столов для начального выбора
             async function loadTablesForSelection() {
                 try {
                     const response = await fetch(basePath + '/api/tables');
                     const tables = await response.json();
-                    
-                    // Очистка списков
                     tableSelectInitial.innerHTML = '';
-                    tableSelect.innerHTML = '';
-                    
-                    // Наполнение списков
+                    tableSelect.innerHTML = ''; // Также очищаем основной селектор
                     const tableOptions = [];
-                    
-                    // Если нет столов, создаем опции по умолчанию
                     if (tables.length === 0) {
-                        for (let i = 1; i <= 30; i++) {
-                            tableOptions.push({
-                                value: i.toString(),
-                                text: `Стол ${i}`
-                            });
+                        for (let i = 1; i <= 8; i++) { // Используем 8 столов по умолчанию
+                            tableOptions.push({ value: i.toString(), text: `Стол ${i}` });
                         }
                     } else {
-                        // Если есть столы, отображаем их
                         tables.forEach(table => {
-                            tableOptions.push({
-                                value: table.tableId,
-                                text: `Стол ${table.tableId}`
-                            });
+                            tableOptions.push({ value: table.tableId, text: `Стол ${table.tableId}` });
                         });
                     }
-                    
-                    // Добавление опций в списки
-                    tableOptions.forEach(option => {
-                        // Для начального выбора
-                        const optionInit = document.createElement('option');
-                        optionInit.value = option.value;
-                        optionInit.textContent = option.text;
-                        tableSelectInitial.appendChild(optionInit);
-                        
-                        // Для последующего переключения
-                        const optionMain = document.createElement('option');
-                        optionMain.value = option.value;
-                        optionMain.textContent = option.text;
-                        tableSelect.appendChild(optionMain);
+                    tableOptions.forEach(optionData => {
+                        const option1 = document.createElement('option');
+                        option1.value = optionData.value;
+                        option1.textContent = optionData.text;
+                        tableSelectInitial.appendChild(option1);
+                        const option2 = document.createElement('option');
+                        option2.value = optionData.value;
+                        option2.textContent = optionData.text;
+                        tableSelect.appendChild(option2);
                     });
-                    
-                    // Обработка выбора стола
-                    selectTableButton.addEventListener('click', () => {
-                        selectedTable = tableSelectInitial.value;
-                        currentTableElement.textContent = selectedTable;
-                        tableSelectorContainer.style.display = 'none';
-                        adminPanel.style.display = 'flex';
-                        createRouletteButtons();
-                    });
-                    
-                    // Обработка смены стола
-                    tableSelect.addEventListener('change', () => {
-                        selectedTable = tableSelect.value;
-                        currentTableElement.textContent = selectedTable;
-                    });
+                     // Устанавливаем selectedTable на первое значение из списка или '1'
+                    selectedTable = tableOptions.length > 0 ? tableOptions[0].value : '1';
+                    tableSelectInitial.value = selectedTable;
+                    tableSelect.value = selectedTable;
+
                 } catch (error) {
                     console.error('Ошибка при загрузке столов:', error);
-                    
-                    // При ошибке создаем несколько столов по умолчанию
-                    for (let i = 1; i <= 30; i++) {
-                        // Для начального выбора
-                        const optionInit = document.createElement('option');
-                        optionInit.value = i.toString();
-                        optionInit.textContent = `Стол ${i}`;
-                        tableSelectInitial.appendChild(optionInit);
-                        
-                        // Для последующего переключения
-                        const optionMain = document.createElement('option');
-                        optionMain.value = i.toString();
-                        optionMain.textContent = `Стол ${i}`;
-                        tableSelect.appendChild(optionMain);
+                    tableSelectInitial.innerHTML = '';
+                    tableSelect.innerHTML = '';
+                    for (let i = 1; i <= 8; i++) { // 8 столов по умолчанию при ошибке
+                        const opt1 = document.createElement('option'); opt1.value = i.toString(); opt1.textContent = `Стол ${i}`; tableSelectInitial.appendChild(opt1);
+                        const opt2 = document.createElement('option'); opt2.value = i.toString(); opt2.textContent = `Стол ${i}`; tableSelect.appendChild(opt2);
                     }
+                    selectedTable = '1'; // По умолчанию, если ошибка
+                    tableSelectInitial.value = selectedTable;
+                    tableSelect.value = selectedTable;
                 }
             }
+
+            selectTableButton.addEventListener('click', async () => {
+                selectedTable = tableSelectInitial.value;
+                if(currentTableElement) currentTableElement.textContent = selectedTable;
+                tableSelectorContainer.style.display = 'none';
+                adminPanel.style.display = 'flex';
+                await loadTableData(selectedTable); // Загружаем данные и последние числа
+                createRouletteButtons();
+            });
+
+            tableSelect.addEventListener('change', async () => {
+                selectedTable = tableSelect.value;
+                if(currentTableElement) currentTableElement.textContent = selectedTable;
+                await loadTableData(selectedTable); // Загружаем данные и последние числа
+                // createRouletteButtons(); // Обычно не нужно пересоздавать кнопки, если они не зависят от данных стола
+            });
             
-            // Создание кнопок рулетки
+            async function loadTableData(tableId) {
+                console.log(`[Admin Panel] Attempting to load data for table: ${tableId}`);
+                try {
+                    const response = await fetch(`${basePath}/api/table/${tableId}`);
+                    if (!response.ok) {
+                        console.error(`[Admin Panel] HTTP error! status: ${response.status} for table ${tableId}`);
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const tableData = await response.json();
+                    console.log(`[Admin Panel] Received tableData for table ${tableId}:`, tableData);
+                    if (currentTableElement) currentTableElement.textContent = tableId;
+
+                    if (lastNumbersDisplay) {
+                        lastNumbersDisplay.innerHTML = ''; 
+                        if (tableData.lastNumbers && tableData.lastNumbers.length > 0) {
+                            tableData.lastNumbers.slice(0, 15).forEach(num => {
+                                const numDiv = document.createElement('div');
+                                numDiv.classList.add('last-number-item', num.color);
+                                numDiv.textContent = num.value;
+                                lastNumbersDisplay.appendChild(numDiv);
+                            });
+                        } else {
+                            lastNumbersDisplay.textContent = 'Нет данных о последних числах.';
+                        }
+                    }
+                } catch (error) {
+                    console.error('[Admin Panel] Ошибка при загрузке данных стола:', error);
+                    if (currentTableElement) currentTableElement.textContent = 'Ошибка';
+                    if (lastNumbersDisplay) lastNumbersDisplay.innerHTML = 'Ошибка загрузки.';
+                }
+            }
+
             function createRouletteButtons() {
-                // Очистка контейнера
                 rouletteGrid.innerHTML = '';
-                
-                // Кнопка для "0" (зеленая)
                 const zeroButton = document.createElement('button');
                 zeroButton.className = 'roulette-button green roulette-zero';
                 zeroButton.textContent = '0';
                 zeroButton.dataset.value = '0';
                 zeroButton.addEventListener('click', () => openConfirmationModal(0));
                 rouletteGrid.appendChild(zeroButton);
-                
-                // Кнопки для чисел от 1 до 36
                 for (let i = 1; i <= 36; i++) {
                     const button = document.createElement('button');
-                    // Определение цвета (красные или черные)
                     const isRed = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36].includes(i);
                     button.className = `roulette-button ${isRed ? 'red' : 'black'}`;
                     button.textContent = i;
@@ -540,140 +575,116 @@
                     button.addEventListener('click', () => openConfirmationModal(i));
                     rouletteGrid.appendChild(button);
                 }
-                
-                // Удаляем старые обработчики и добавляем новые
+                // Обновляем обработчики для кнопок сброса и отмены, если они пересоздаются
+                // или если их нужно привязать к текущему selectedTable (но это обычно не так)
                 resetButton.removeEventListener('click', openResetModal);
                 resetButton.addEventListener('click', openResetModal);
-                
                 revertButton.removeEventListener('click', openRevertModal);
                 revertButton.addEventListener('click', openRevertModal);
             }
-            
-            // Открытие модального окна подтверждения
+
             function openConfirmationModal(value) {
                 currentNumberValue = value;
-                selectedNumber.textContent = value;
-                
-                // Задаем цвет числа в модальном окне
+                if(selectedNumber) selectedNumber.textContent = value;
                 if (value === 0) {
-                    selectedNumber.style.color = '#2ecc71'; // Зеленый
+                    if(selectedNumber) selectedNumber.style.color = '#2ecc71';
                 } else if ([1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36].includes(value)) {
-                    selectedNumber.style.color = '#e01e37'; // Красный
+                    if(selectedNumber) selectedNumber.style.color = '#e01e37';
                 } else {
-                    selectedNumber.style.color = 'white'; // Черный
+                    if(selectedNumber) selectedNumber.style.color = 'white';
                 }
-                
-                confirmationModal.style.display = 'flex';
+                if(confirmationModal) confirmationModal.style.display = 'flex';
             }
-            
-            // Закрытие модального окна подтверждения
-            cancelButton.addEventListener('click', () => {
-                confirmationModal.style.display = 'none';
+
+            if(cancelButton) cancelButton.addEventListener('click', () => {
+                if(confirmationModal) confirmationModal.style.display = 'none';
                 currentNumberValue = null;
             });
-            
-            // Подтверждение выбора числа
-            confirmButton.addEventListener('click', async () => {
-                if (currentNumberValue !== null) {
+
+            if(confirmButton) confirmButton.addEventListener('click', async () => {
+                if (currentNumberValue !== null && password && selectedTable) {
                     try {
                         const response = await fetch(`${basePath}/api/table/${selectedTable}/add`, {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                value: currentNumberValue,
-                                password: password
-                            })
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ value: currentNumberValue, password: password })
                         });
-                        
                         if (response.ok) {
-                            // Успешное добавление числа
                             console.log(`Число ${currentNumberValue} добавлено на стол ${selectedTable}`);
+                            await loadTableData(selectedTable); // <--- ОБНОВЛЕНИЕ ДАННЫХ ПОСЛЕ ДОБАВЛЕНИЯ
                         } else {
-                            console.error('Ошибка при добавлении числа', await response.json());
+                            const errorData = await response.json();
+                            console.error('Ошибка при добавлении числа:', errorData);
+                            alert(`Ошибка: ${errorData.error || response.statusText}`);
                         }
                     } catch (error) {
-                        console.error('Ошибка при отправке запроса:', error);
+                        console.error('Ошибка при отправке запроса на добавление числа:', error);
+                        alert('Сетевая ошибка или ошибка сервера при добавлении числа.');
                     }
-                    
-                    confirmationModal.style.display = 'none';
+                    if(confirmationModal) confirmationModal.style.display = 'none';
                     currentNumberValue = null;
                 }
             });
-            
-            // Открытие модального окна сброса
-            function openResetModal() {
-                resetModal.style.display = 'flex';
-            }
-            
-            // Закрытие модального окна сброса
-            resetCancelButton.addEventListener('click', () => {
-                resetModal.style.display = 'none';
-            });
-            
-            // Подтверждение сброса данных
-            resetConfirmButton.addEventListener('click', async () => {
-                try {
-                    const response = await fetch(`${basePath}/api/table/${selectedTable}/reset`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            password: password
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        console.log(`Данные стола ${selectedTable} сброшены`);
-                    } else {
-                        console.error('Ошибка при сбросе данных', await response.json());
+
+            function openResetModal() { if(resetModal) resetModal.style.display = 'flex'; }
+            if(resetCancelButton) resetCancelButton.addEventListener('click', () => { if(resetModal) resetModal.style.display = 'none'; });
+            if(resetConfirmButton) resetConfirmButton.addEventListener('click', async () => {
+                if (password && selectedTable) {
+                    try {
+                        const response = await fetch(`${basePath}/api/table/${selectedTable}/reset`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: password })
+                        });
+                        if (response.ok) {
+                            console.log(`Данные стола ${selectedTable} сброшены`);
+                            await loadTableData(selectedTable); // Обновляем данные после сброса
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Ошибка при сбросе данных:', errorData);
+                            alert(`Ошибка: ${errorData.error || response.statusText}`);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при отправке запроса на сброс:', error);
+                        alert('Сетевая ошибка или ошибка сервера при сбросе данных.');
                     }
-                } catch (error) {
-                    console.error('Ошибка при отправке запроса:', error);
+                    if(resetModal) resetModal.style.display = 'none';
                 }
-                
-                resetModal.style.display = 'none';
             });
-            
-            // Открытие модального окна отмены
-            function openRevertModal() {
-                revertModal.style.display = 'flex';
-            }
-            
-            // Закрытие модального окна отмены
-            revertCancelButton.addEventListener('click', () => {
-                revertModal.style.display = 'none';
-            });
-            
-            // Подтверждение отмены последнего числа
-            revertConfirmButton.addEventListener('click', async () => {
-                try {
-                    const response = await fetch(`${basePath}/api/table/${selectedTable}/revert`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            password: password
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        console.log(`Последнее число стола ${selectedTable} отменено`);
-                    } else {
-                        console.error('Ошибка при отмене числа', await response.json());
+
+            function openRevertModal() { if(revertModal) revertModal.style.display = 'flex'; }
+            if(revertCancelButton) revertCancelButton.addEventListener('click', () => { if(revertModal) revertModal.style.display = 'none'; });
+            if(revertConfirmButton) revertConfirmButton.addEventListener('click', async () => {
+                 if (password && selectedTable) {
+                    try {
+                        const response = await fetch(`${basePath}/api/table/${selectedTable}/revert`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ password: password })
+                        });
+                        if (response.ok) {
+                            console.log(`Последнее число стола ${selectedTable} отменено`);
+                            await loadTableData(selectedTable); // Обновляем данные после отмены
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Ошибка при отмене числа:', errorData);
+                            alert(`Ошибка: ${errorData.error || response.statusText}`);
+                        }
+                    } catch (error) {
+                        console.error('Ошибка при отправке запроса на отмену:', error);
+                        alert('Сетевая ошибка или ошибка сервера при отмене числа.');
                     }
-                } catch (error) {
-                    console.error('Ошибка при отправке запроса:', error);
+                    if(revertModal) revertModal.style.display = 'none';
                 }
-                
-                revertModal.style.display = 'none';
             });
             
-            // Добавляем обработчик для кнопки отмены при инициализации
-            revertButton.addEventListener('click', openRevertModal);
+            // Инициализация кнопки отмены (если еще не сделано)
+            // revertButton.addEventListener('click', openRevertModal); // Дублируется, в createRouletteButtons уже есть
+
+            // Код для первоначальной загрузки (если пользователь уже аутентифицирован, например, через localStorage)
+            // В данном случае, мы начинаем с формы логина, так что специфической инициализации админ-панели здесь не требуется,
+            // она произойдет после успешного логина и выбора стола.
+
         });
     </script>
 </body>

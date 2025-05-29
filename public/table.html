@@ -19,6 +19,9 @@
     <div class="container">
         <!-- Левая колонка - история выпадений -->
         <div class="left-column">
+            <div id="particle-effect-container" class="last-number-gif-container">
+                <!-- Частицы будут добавлены сюда с помощью JavaScript -->
+            </div>
             <div class="divider"></div>
             <div class="history-list" id="history-list">
                 <!-- История будет заполнена динамически -->
@@ -27,6 +30,7 @@
         
         <!-- Правая колонка - статистика -->
         <div class="right-column">
+            <div id="table-number-display" class="table-number-display"></div>
             <div class="logo">
                 <img src="/roulette/media/logo.png" alt="22 Hub">
             </div>
@@ -47,7 +51,9 @@
                     <div class="limit-equal">= 100$</div>
                 </div>
             </div>
-            
+            <div class="stats-title main-stats-title">
+                <span>LAST 200 SPINS</span>
+            </div>
             <!-- Статистика LOW / ZERO / HIGH -->
             <div class="stats-section">
                 <div class="stats-title">
